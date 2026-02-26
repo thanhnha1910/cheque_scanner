@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheque Scanner — OCR Extraction</title>
+    <meta name="description" content="Automated cheque data extraction using DeepSeek OCR + GPT-OSS AI pipeline">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-elevated: #1a1a28;
+            --bg-glass: rgba(20, 20, 35, 0.7);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-active: rgba(99, 102, 241, 0.4);
+            --text: #e4e4ec;
+            --text-dim: #6b6b80;
+            --text-muted: #4a4a5e;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --green: #22c55e;
+            --green-dim: rgba(34, 197, 94, 0.12);
+            --amber: #f59e0b;
+            --amber-dim: rgba(245, 158, 11, 0.12);
+            --red: #ef4444;
+            --red-dim: rgba(239, 68, 68, 0.12);
+            --cyan: #06b6d4;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        html {
+            font-size: 15px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── Ambient background ─── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -40%;
+            left: -20%;
+            width: 80vw;
+            height: 80vw;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        /* ─── Header ─── */
+        .header {
+            margin-bottom: 2.5rem;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            font-weight: 400;
+            margin-left: 48px;
+            margin-top: -2px;
+        }
+
+        /* ─── Config bar ─── */
+        .config-bar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: end;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .field label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+        }
+
+        .field input {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.55rem 0.75rem;
+            color: var(--text);
+            font-family: 'Inter', monospace;
+            font-size: 0.82rem;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: var(--accent);
+        }
+
+        /* ─── Drop zone ─── */
+        .dropzone {
+            border: 1.5px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            background: var(--bg-card);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dropzone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--accent-glow), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .dropzone:hover,
+        .dropzone.drag-over {
+            border-color: var(--accent);
+            background: var(--bg-elevated);
+        }
+
+        .dropzone:hover::before,
+        .dropzone.drag-over::before {
+            opacity: 1;
+        }
+
+        .dropzone-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.7;
+            position: relative;
+        }
+
+        .dropzone-text {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            font-weight: 500;
+            position: relative;
+        }
+
+        .dropzone-text span {
+            color: var(--accent);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .dropzone-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            position: relative;
+        }
+
+        .dropzone input[type="file"] {
+            display: none;
+        }
+
+        /* ─── File list ─── */
+        .file-list {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .file-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.3rem 0.7rem 0.3rem 0.5rem;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            animation: chipIn 0.2s ease;
+        }
+
+        .file-chip .remove {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.15s;
+            font-size: 0.8rem;
+            line-height: 1;
+        }
+
+        .file-chip .remove:hover {
+            opacity: 1;
+            color: var(--red);
+        }
+
+        @keyframes chipIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        /* ─── Actions ─── */
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #818cf8);
+            color: #fff;
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--text-dim);
+            color: var(--text);
+        }
+
+        /* ─── Status panel ─── */
+        .status-panel {
+            margin-top: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .status-panel.visible {
+            display: block;
+            animation: fadeUp 0.3s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .status-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-processing {
+            background: var(--amber-dim);
+            color: var(--amber);
+        }
+
+        .badge-completed {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .badge-error {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        .status-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .status-meta code {
+            background: var(--bg-elevated);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: var(--text-dim);
+        }
+
+        /* ─── Progress bar ─── */
+        .progress-track {
+            height: 3px;
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            margin: 1rem 0 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--cyan));
+            transition: width 0.4s ease;
+            position: relative;
+        }
+
+        .progress-bar.indeterminate {
+            width: 40% !important;
+            animation: indeterminate 1.8s ease-in-out infinite;
+        }
+
+        @keyframes indeterminate {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(350%);
+            }
+        }
+
+        .poll-log {
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'SF Mono', monospace;
+            line-height: 1.7;
+            margin-top: 0.75rem;
+            padding-right: 0.5rem;
+        }
+
+        .poll-log::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .poll-log::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* ─── Results Table ─── */
+        .results-section {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+            animation: fadeUp 0.35s ease;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .results-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .results-count {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: var(--bg-elevated);
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--bg-card);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+
+        thead th {
+            background: var(--bg-elevated);
+            padding: 0.7rem 0.85rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+        }
+
+        tbody td {
+            padding: 0.65rem 0.85rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: top;
+        }
+
+        tbody tr {
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-elevated);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        td.amount {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        td.date {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: var(--cyan);
+            font-size: 0.75rem;
+        }
+
+        td.cheque-num {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: var(--text-dim);
+            font-size: 0.73rem;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .type-cheque {
+            background: rgba(99, 102, 241, 0.12);
+            color: #818cf8;
+        }
+
+        .type-cashier {
+            background: rgba(6, 182, 212, 0.12);
+            color: var(--cyan);
+        }
+
+        .type-draft {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--amber);
+        }
+
+        .type-unknown {
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+        }
+
+        .currency-tag {
+            display: inline-block;
+            background: var(--bg-elevated);
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-right: 0.25rem;
+        }
+
+        /* ─── Image preview modal ─── */
+        .preview-thumb {
+            width: 40px;
+            height: 28px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+
+        .preview-thumb:hover {
+            transform: scale(1.1);
+            border-color: var(--accent);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            place-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .modal-overlay.open {
+            display: grid;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+        }
+
+        /* ─── Export buttons ─── */
+        .btn-export {
+            background: var(--bg-elevated);
+            color: var(--green);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-export:hover {
+            border-color: var(--green);
+            background: var(--green-dim);
+        }
+
+        .btn-xlsx {
+            background: var(--bg-elevated);
+            color: #4472C4;
+            border: 1px solid rgba(68, 114, 196, 0.3);
+        }
+
+        .btn-xlsx:hover {
+            border-color: #4472C4;
+            background: rgba(68, 114, 196, 0.1);
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 640px) {
+            .app {
+                padding: 1.25rem 1rem 3rem;
+            }
+
+            h1 {
+                font-size: 1.2rem;
+            }
+
+            .config-bar {
+                flex-direction: column;
+            }
+
+            .field {
+                min-width: 100%;
+            }
+        }
+
+        /* ─── Toast ─── */
+        .toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.6rem 1rem;
+            font-size: 0.78rem;
+            color: var(--text);
+            box-shadow: var(--shadow);
+            animation: toastIn 0.25s ease;
+            max-width: 340px;
+        }
+
+        .toast.error {
+            border-color: rgba(239, 68, 68, 0.3);
+            color: var(--red);
+        }
+
+        .toast.success {
+            border-color: rgba(34, 197, 94, 0.3);
+            color: var(--green);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-row">
+                <div class="header-icon">🏦</div>
+                <h1>Cheque Scanner</h1>
+            </div>
+            <p>DeepSeek OCR + GPT-OSS · Async extraction pipeline</p>
+        </div>
+
+        <!-- Config -->
+        <div class="config-bar">
+            <div class="field">
+                <label>n8n Base URL</label>
+                <input type="text" id="baseUrl" value="https://n8n-nick.abapi.dev"
+                    placeholder="http://your-n8n-host:5678">
+            </div>
+            <div class="field" style="max-width: 180px;">
+                <label>Webhook Mode</label>
+                <select id="webhookMode"
+                    style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.55rem 0.75rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.82rem;outline:none;width:100%">
+                    <option value="webhook">Production</option>
+                    <option value="webhook-test">Test Mode</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="dropzone" id="dropzone">
+            <div class="dropzone-icon">📄</div>
+            <div class="dropzone-text">Drop cheque images here or <span>browse</span></div>
+            <div class="dropzone-sub">PNG, JPG, PDF — Multiple files supported</div>
+            <input type="file" id="fileInput" multiple accept="image/*,.pdf">
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button class="btn btn-primary" id="btnScan" disabled>
+                <span>⚡</span> Start Scan
+            </button>
+            <button class="btn btn-ghost" id="btnClear" style="display:none">Clear</button>
+        </div>
+
+        <!-- Status Panel -->
+        <div class="status-panel" id="statusPanel">
+            <div class="status-header">
+                <div class="status-title">
+                    <span id="statusIcon">⏳</span>
+                    <span id="statusLabel">Processing...</span>
+                </div>
+                <span class="status-badge badge-processing" id="statusBadge">Processing</span>
+            </div>
+            <div class="status-meta">
+                Job ID: <code id="jobIdDisplay">—</code>
+            </div>
+            <div class="progress-track">
+                <div class="progress-bar indeterminate" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div class="poll-log" id="pollLog"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2>Extraction Results</h2>
+                <div style="display:flex;gap:0.5rem;align-items:center">
+                    <span class="results-count" id="resultsCount">0 records</span>
+                    <button class="btn btn-xlsx" id="btnXlsx">📊 XLSX</button>
+                    <button class="btn btn-export" id="btnExport">📥 CSV</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Preview</th>
+                            <th>File Name</th>
+                            <th>Type</th>
+                            <th>Cheque Bank</th>
+                            <th>Cheque Date</th>
+                            <th>Payee Name</th>
+                            <th>Currency</th>
+                            <th>Amount</th>
+                            <th>Cheque Number</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal-overlay" id="modal">
+        <img id="modalImg" src="" alt="Preview">
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ─── State ───
+        let selectedFiles = [];
+        let currentJobId = null;
+        let pollTimer = null;
+        let pollCount = 0;
+        let pendingCount = 0;
+        let lastResults = [];
+
+        // ─── DOM ───
+        const $ = id => document.getElementById(id);
+        const dropzone = $('dropzone');
+        const fileInput = $('fileInput');
+        const fileList = $('fileList');
+        const btnScan = $('btnScan');
+        const btnClear = $('btnClear');
+        const statusPanel = $('statusPanel');
+        const resultsSection = $('resultsSection');
+        const pollLog = $('pollLog');
+        const modal = $('modal');
+
+        // ─── Toast ───
+        function toast(msg, type = 'info') {
+            const el = document.createElement('div');
+            el.className = `toast ${type}`;
+            el.textContent = msg;
+            $('toastContainer').appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 4000);
+        }
+
+        // ─── File handling ───
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+            addFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
+
+        function addFiles(files) {
+            for (const f of files) selectedFiles.push(f);
+            renderFileList();
+        }
+
+        function removeFile(idx) {
+            selectedFiles.splice(idx, 1);
+            renderFileList();
+        }
+
+        function renderFileList() {
+            fileList.innerHTML = selectedFiles.map((f, i) => `
+        <div class="file-chip">
+          📎 ${f.name} <span class="remove" onclick="removeFile(${i})">✕</span>
+        </div>
+      `).join('');
+            btnScan.disabled = selectedFiles.length === 0;
+            btnClear.style.display = selectedFiles.length > 0 ? 'inline-flex' : 'none';
+        }
+
+        btnClear.addEventListener('click', () => {
+            selectedFiles = [];
+            renderFileList();
+        });
+
+        // ─── Upload & Start ───
+        btnScan.addEventListener('click', startScan);
+
+        async function startScan() {
+            if (selectedFiles.length === 0) return;
+
+            const baseUrl = $('baseUrl').value.replace(/\/$/, '');
+            const mode = $('webhookMode').value;
+            const uploadUrl = `${baseUrl}/${mode}/cheque_scan_start`;
+
+            btnScan.disabled = true;
+            btnScan.innerHTML = '<span class="spinner">⏳</span> Uploading...';
+
+            // Show status panel
+            statusPanel.classList.add('visible');
+            resultsSection.classList.remove('visible');
+            $('statusBadge').className = 'status-badge badge-processing';
+            $('statusBadge').textContent = 'Uploading';
+            $('statusIcon').textContent = '📤';
+            $('statusLabel').textContent = 'Uploading files...';
+            $('progressBar').className = 'progress-bar indeterminate';
+            $('progressBar').style.width = '0%';
+            pollLog.innerHTML = '';
+            pollCount = 0;
+            pendingCount = 0;
+
+            const formData = new FormData();
+            selectedFiles.forEach((f, i) => formData.append(`file_${i}`, f));
+
+            try {
+                logPoll(`→ Uploading ${selectedFiles.length} file(s) to ${uploadUrl}`);
+                const res = await fetch(uploadUrl, { method: 'POST', body: formData });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+                const data = await res.json();
+                currentJobId = data.jobId;
+
+                if (!currentJobId) throw new Error('No jobId returned from server');
+
+                $('jobIdDisplay').textContent = currentJobId;
+                $('statusBadge').textContent = 'Processing';
+                $('statusIcon').textContent = '⏳';
+                $('statusLabel').textContent = `Processing ${data.expected || '?'} item(s)...`;
+                logPoll(`✓ Job created: ${currentJobId} (${data.expected || '?'} items)`);
+
+                // Start polling
+                startPolling();
+
+            } catch (err) {
+                toast(`Upload failed: ${err.message}`, 'error');
+                $('statusBadge').className = 'status-badge badge-error';
+                $('statusBadge').textContent = 'Error';
+                $('statusIcon').textContent = '❌';
+                $('statusLabel').textContent = 'Upload failed';
+                logPoll(`✗ Error: ${err.message}`);
+                resetButton();
+            }
+        }
+
+        // ─── Polling ───
+        function startPolling() {
+            const interval = 3000;
+            pollTimer = setInterval(pollStatus, interval);
+            logPoll(`◆ Polling every ${interval}ms...`);
+        }
+
+        function stopPolling() {
+            if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        }
+
+        async function pollStatus() {
+            if (!currentJobId) return;
+
+            const baseUrl = $('baseUrl').value.replace(/\/$/, '');
+            const mode = $('webhookMode').value;
+            const statusUrl = `${baseUrl}/${mode}/cheque_scan_status?jobId=${currentJobId}&_t=${Date.now()}`;
+
+            pollCount++;
+
+            try {
+                const res = await fetch(statusUrl, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const data = await res.json();
+                const status = data.status;
+
+                // Debug: log raw response to console
+                console.log(`[Poll #${pollCount}] Raw response:`, JSON.stringify(data));
+
+                if (status === 'processing') {
+                    pendingCount = 0; // reset pending counter
+                    const progress = data.progress || '...';
+                    logPoll(`⟳ Poll #${pollCount}: processing (${progress})`);
+
+                    if (data.progress) {
+                        const [done, total] = data.progress.split('/').map(Number);
+                        if (total > 0) {
+                            const pct = Math.round((done / total) * 100);
+                            $('progressBar').className = 'progress-bar';
+                            $('progressBar').style.width = `${pct}%`;
+                            $('statusLabel').textContent = `Processing... ${done}/${total}`;
+                        }
+                    }
+
+                } else if (status === 'completed' || status === 'completed-with-errors') {
+                    stopPolling();
+                    logPoll(`✓ Completed! Rendering results...`);
+
+                    $('statusBadge').className = 'status-badge badge-completed';
+                    $('statusBadge').textContent = 'Completed';
+                    $('statusIcon').textContent = '✅';
+                    $('statusLabel').textContent = 'Extraction complete';
+                    $('progressBar').className = 'progress-bar';
+                    $('progressBar').style.width = '100%';
+
+                    renderResults(data.result || []);
+                    resetButton();
+                    toast(`Done! ${(data.result || []).length} record(s) extracted.`, 'success');
+
+                } else if (status === 'pending') {
+                    pendingCount++;
+                    logPoll(`⟳ Poll #${pollCount}: pending — job not started yet (${pendingCount})`);
+
+                    // If pending for too long, the status webhook is likely not working
+                    if (pendingCount >= 20) {
+                        stopPolling();
+                        $('statusBadge').className = 'status-badge badge-error';
+                        $('statusBadge').textContent = 'Error';
+                        $('statusIcon').textContent = '❌';
+                        $('statusLabel').textContent = 'Status webhook not responding — check n8n workflow is Active';
+                        resetButton();
+                        toast('Status webhook may not be active in n8n. Check workflow toggle.', 'error');
+                    }
+
+                } else {
+                    pendingCount = 0;
+                    logPoll(`⟳ Poll #${pollCount}: ${status}`);
+                }
+
+            } catch (err) {
+                logPoll(`⚠ Poll #${pollCount} error: ${err.message}`);
+                if (pollCount > 60) {
+                    stopPolling();
+                    $('statusBadge').className = 'status-badge badge-error';
+                    $('statusBadge').textContent = 'Timeout';
+                    $('statusIcon').textContent = '⏰';
+                    $('statusLabel').textContent = 'Polling timeout';
+                    resetButton();
+                    toast('Polling timeout after 60 attempts', 'error');
+                }
+            }
+        }
+
+        function logPoll(msg) {
+            const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            pollLog.innerHTML += `<div>[${ts}] ${msg}</div>`;
+            pollLog.scrollTop = pollLog.scrollHeight;
+        }
+
+        function resetButton() {
+            btnScan.disabled = selectedFiles.length === 0;
+            btnScan.innerHTML = '<span>⚡</span> Start Scan';
+        }
+
+        // ─── Results ───
+        function renderResults(results) {
+            if (!Array.isArray(results) || results.length === 0) {
+                $('resultsCount').textContent = '0 records';
+                return;
+            }
+
+            lastResults = results;
+            resultsSection.classList.add('visible');
+            $('resultsCount').textContent = `${results.length} record(s)`;
+
+            const tbody = $('resultsBody');
+            tbody.innerHTML = results.map((r, i) => {
+                const typeCls = getTypeClass(r.instrument_type);
+                const hasImage = r.image_data && r.image_data.startsWith('data:');
+                const preview = hasImage
+                    ? `<img class="preview-thumb" src="${r.image_data}" onclick="openModal(this.src)" alt="preview">`
+                    : '<span style="color:var(--text-muted);font-size:0.7rem">—</span>';
+
+                return `<tr>
+          <td style="color:var(--text-muted)">${i + 1}</td>
+          <td>${preview}</td>
+          <td>${esc(r.fileName || '—')}</td>
+          <td><span class="type-badge ${typeCls}">${esc(r.instrument_type || '—')}</span></td>
+          <td>${esc(r.issuing_bank || '—')}</td>
+          <td class="date">${esc(r.cheque_date || '—')}</td>
+          <td>${esc(r.payee_name || '—')}</td>
+          <td><span class="currency-tag">${esc(r.currency || '—')}</span></td>
+          <td class="amount">${formatAmount(r.amount, r.currency)}</td>
+          <td class="cheque-num">${esc(r.cheque_number || '—')}</td>
+        </tr>`;
+            }).join('');
+        }
+
+        function getTypeClass(type) {
+            if (!type) return 'type-unknown';
+            const t = type.toLowerCase();
+            if (t.includes('cashier')) return 'type-cashier';
+            if (t.includes('draft')) return 'type-draft';
+            if (t.includes('cheque') || t.includes('check')) return 'type-cheque';
+            return 'type-unknown';
+        }
+
+        function formatAmount(amt, currency) {
+            if (!amt || amt === 'N/A') return '—';
+            const num = parseFloat(amt.replace(/,/g, ''));
+            if (isNaN(num)) return esc(amt);
+            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        // ─── Modal ───
+        function openModal(src) {
+            $('modalImg').src = src;
+            modal.classList.add('open');
+        }
+        modal.addEventListener('click', () => modal.classList.remove('open'));
+
+        // ─── Export CSV ───
+        $('btnExport').addEventListener('click', () => {
+            const rows = $('resultsBody').querySelectorAll('tr');
+            if (rows.length === 0) return toast('No data to export', 'error');
+
+            const headers = ['Sample', 'File Name', 'Type', 'Cheque Bank', 'Cheque Date', 'Payee Name', 'Currency', 'Cheque Amount', 'Cheque Number'];
+            let csv = headers.join(',') + '\n';
+
+            rows.forEach((tr, i) => {
+                const cells = tr.querySelectorAll('td');
+                const vals = [
+                    i + 1,
+                    q(cells[2]?.textContent),
+                    q(cells[3]?.textContent),
+                    q(cells[4]?.textContent),
+                    q(cells[5]?.textContent),
+                    q(cells[6]?.textContent),
+                    q(cells[7]?.textContent),
+                    q(cells[8]?.textContent),
+                    q(cells[9]?.textContent)
+                ];
+                csv += vals.join(',') + '\n';
+            });
+
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cheque_scan_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast('CSV exported!', 'success');
+        });
+
+        function q(str) {
+            const s = (str || '').trim();
+            return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+        }
+
+        // ─── Export XLSX (matching sample format) ───
+        $('btnXlsx').addEventListener('click', () => {
+            if (lastResults.length === 0) return toast('No data to export', 'error');
+
+            const headers = ['Sample', 'File Name', 'Type', 'Cheque Bank', 'Cheque Date', 'Payee Name', 'Currency', 'Cheque Amount', 'Cheque Number'];
+
+            const rows = lastResults.map((r, i) => ([
+                i + 1,
+                r.fileName || '',
+                r.instrument_type || '',
+                r.issuing_bank || '',
+                r.cheque_date || '',
+                r.payee_name || '',
+                r.currency || '',
+                r.amount || '',
+                r.cheque_number || ''
+            ]));
+
+            const wsData = [headers, ...rows];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // ── Column widths (auto-fit based on content) ──
+            const colWidths = headers.map((h, ci) => {
+                let max = h.length;
+                rows.forEach(row => {
+                    const len = String(row[ci] || '').length;
+                    if (len > max) max = len;
+                });
+                return { wch: Math.min(max + 4, 45) };
+            });
+            ws['!cols'] = colWidths;
+
+            // ── Blue header styling (#4472C4 background, white bold text) ──
+            const headerStyle = {
+                font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11, name: 'Calibri' },
+                fill: { fgColor: { rgb: '4472C4' } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                border: {
+                    top: { style: 'thin', color: { rgb: 'FFFFFF' } },
+                    bottom: { style: 'thin', color: { rgb: '2F5496' } },
+                    left: { style: 'thin', color: { rgb: 'FFFFFF' } },
+                    right: { style: 'thin', color: { rgb: 'FFFFFF' } }
+                }
+            };
+
+            headers.forEach((_, ci) => {
+                const addr = XLSX.utils.encode_cell({ r: 0, c: ci });
+                if (ws[addr]) ws[addr].s = headerStyle;
+            });
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Cheque Data');
+
+            const fileName = `extracted_cheque_data_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            toast(`XLSX exported: ${fileName}`, 'success');
+        });
+    </script>
+</body>
+
+</html>
