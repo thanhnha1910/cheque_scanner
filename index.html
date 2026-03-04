@@ -401,12 +401,104 @@
             color: var(--text-dim);
         }
 
-        /* ─── Progress bar ─── */
+        /* ─── Step Stepper ─── */
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin: 1.25rem 0 0.75rem;
+            position: relative;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 2px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-muted);
+            transition: all 0.35s ease;
+            position: relative;
+        }
+
+        .step.active .step-icon {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+            animation: stepPulse 2s ease-in-out infinite;
+        }
+
+        .step.done .step-icon {
+            border-color: var(--green);
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+            box-shadow: none;
+            animation: none;
+        }
+
+        @keyframes stepPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+            }
+        }
+
+        .step-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            transition: color 0.3s;
+        }
+
+        .step.active .step-label {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .step.done .step-label {
+            color: var(--green);
+        }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            transition: background 0.4s ease;
+            min-width: 20px;
+        }
+
+        .step-line.done {
+            background: linear-gradient(90deg, var(--green), var(--cyan));
+        }
+
+        /* ─── Progress bar (sub-step) ─── */
         .progress-track {
-            height: 3px;
+            height: 2px;
             background: var(--bg-elevated);
             border-radius: 3px;
-            margin: 1rem 0 0.5rem;
+            margin: 0.5rem 0;
             overflow: hidden;
         }
 
@@ -777,6 +869,28 @@
             <div class="status-meta">
                 Job ID: <code id="jobIdDisplay">—</code>
             </div>
+            <!-- 4-Step Pipeline Stepper -->
+            <div class="stepper" id="stepper">
+                <div class="step" id="step1" data-step="1">
+                    <div class="step-icon">📤</div>
+                    <div class="step-label">Upload</div>
+                </div>
+                <div class="step-line" id="line1"></div>
+                <div class="step" id="step2" data-step="2">
+                    <div class="step-icon">🔍</div>
+                    <div class="step-label">OCR</div>
+                </div>
+                <div class="step-line" id="line2"></div>
+                <div class="step" id="step3" data-step="3">
+                    <div class="step-icon">🧠</div>
+                    <div class="step-label">LLM</div>
+                </div>
+                <div class="step-line" id="line3"></div>
+                <div class="step" id="step4" data-step="4">
+                    <div class="step-icon">📊</div>
+                    <div class="step-label">Export</div>
+                </div>
+            </div>
             <div class="progress-track">
                 <div class="progress-bar indeterminate" id="progressBar" style="width: 0%"></div>
             </div>
@@ -801,12 +915,13 @@
                             <th>Preview</th>
                             <th>File Name</th>
                             <th>Type</th>
-                            <th>Cheque Bank</th>
+                            <th>Bank (EN)</th>
+                            <th>Bank (CH)</th>
                             <th>Cheque Date</th>
                             <th>Payee Name</th>
                             <th>Currency</th>
                             <th>Amount</th>
-                            <th>Cheque Number</th>
+                            <th>Cheque No.</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody"></tbody>
@@ -843,6 +958,20 @@
         const resultsSection = $('resultsSection');
         const pollLog = $('pollLog');
         const modal = $('modal');
+
+        // ─── Stepper ───
+        function setStepper(activeStep) {
+            for (let s = 1; s <= 4; s++) {
+                const el = $(`step${s}`);
+                el.classList.remove('active', 'done');
+                if (s < activeStep) el.classList.add('done');
+                else if (s === activeStep) el.classList.add('active');
+            }
+            for (let l = 1; l <= 3; l++) {
+                const line = $(`line${l}`);
+                line.classList.toggle('done', l < activeStep);
+            }
+        }
 
         // ─── Toast ───
         function toast(msg, type = 'info') {
@@ -911,6 +1040,7 @@
             $('statusLabel').textContent = 'Uploading files...';
             $('progressBar').className = 'progress-bar indeterminate';
             $('progressBar').style.width = '0%';
+            setStepper(1);
             pollLog.innerHTML = '';
             pollCount = 0;
             pendingCount = 0;
@@ -933,6 +1063,7 @@
                 $('statusBadge').textContent = 'Processing';
                 $('statusIcon').textContent = '⏳';
                 $('statusLabel').textContent = `Processing ${data.expected || '?'} item(s)...`;
+                setStepper(2);
                 logPoll(`✓ Job created: ${currentJobId} (${data.expected || '?'} items)`);
 
                 // Start polling
@@ -984,6 +1115,7 @@
                     const progress = data.progress || '...';
                     logPoll(`⟳ Poll #${pollCount}: processing (${progress})`);
 
+                    // Derive step from progress: early polls = OCR (step 2), later = LLM (step 3)
                     if (data.progress) {
                         const [done, total] = data.progress.split('/').map(Number);
                         if (total > 0) {
@@ -991,7 +1123,10 @@
                             $('progressBar').className = 'progress-bar';
                             $('progressBar').style.width = `${pct}%`;
                             $('statusLabel').textContent = `Processing... ${done}/${total}`;
+                            setStepper(pct < 50 ? 2 : 3);
                         }
+                    } else {
+                        setStepper(2);
                     }
 
                 } else if (status === 'completed' || status === 'completed-with-errors') {
@@ -1004,6 +1139,7 @@
                     $('statusLabel').textContent = 'Extraction complete';
                     $('progressBar').className = 'progress-bar';
                     $('progressBar').style.width = '100%';
+                    setStepper(4);
 
                     renderResults(data.result || []);
                     resetButton();
@@ -1061,6 +1197,13 @@
                 return;
             }
 
+            // Sort by fileName ascending
+            results.sort((a, b) => {
+                const fa = (a.fileName || '').toLowerCase();
+                const fb = (b.fileName || '').toLowerCase();
+                return fa.localeCompare(fb, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
             lastResults = results;
             resultsSection.classList.add('visible');
             $('resultsCount').textContent = `${results.length} record(s)`;
@@ -1073,12 +1216,17 @@
                     ? `<img class="preview-thumb" src="${r.image_data}" onclick="openModal(this.src)" alt="preview">`
                     : '<span style="color:var(--text-muted);font-size:0.7rem">—</span>';
 
+                // Backward compat: support old issuing_bank field
+                const bankEn = r.bank_name_en || r.issuing_bank || '—';
+                const bankCh = r.bank_name_ch || '—';
+
                 return `<tr>
           <td style="color:var(--text-muted)">${i + 1}</td>
           <td>${preview}</td>
           <td>${esc(r.fileName || '—')}</td>
           <td><span class="type-badge ${typeCls}">${esc(r.instrument_type || '—')}</span></td>
-          <td>${esc(r.issuing_bank || '—')}</td>
+          <td>${esc(bankEn)}</td>
+          <td>${esc(bankCh)}</td>
           <td class="date">${esc(r.cheque_date || '—')}</td>
           <td>${esc(r.payee_name || '—')}</td>
           <td><span class="currency-tag">${esc(r.currency || '—')}</span></td>
@@ -1119,24 +1267,23 @@
 
         // ─── Export CSV ───
         $('btnExport').addEventListener('click', () => {
-            const rows = $('resultsBody').querySelectorAll('tr');
-            if (rows.length === 0) return toast('No data to export', 'error');
+            if (lastResults.length === 0) return toast('No data to export', 'error');
 
-            const headers = ['Sample', 'File Name', 'Type', 'Cheque Bank', 'Cheque Date', 'Payee Name', 'Currency', 'Cheque Amount', 'Cheque Number'];
+            const headers = ['Sample', 'File Name', 'Type', 'Bank (EN)', 'Bank (CH)', 'Cheque Date', 'Payee Name', 'Currency', 'Cheque Amount', 'Cheque Number'];
             let csv = headers.join(',') + '\n';
 
-            rows.forEach((tr, i) => {
-                const cells = tr.querySelectorAll('td');
+            lastResults.forEach((r, i) => {
                 const vals = [
                     i + 1,
-                    q(cells[2]?.textContent),
-                    q(cells[3]?.textContent),
-                    q(cells[4]?.textContent),
-                    q(cells[5]?.textContent),
-                    q(cells[6]?.textContent),
-                    q(cells[7]?.textContent),
-                    q(cells[8]?.textContent),
-                    q(cells[9]?.textContent)
+                    q(r.fileName || ''),
+                    q(r.instrument_type || ''),
+                    q(r.bank_name_en || r.issuing_bank || ''),
+                    q(r.bank_name_ch || ''),
+                    q(r.cheque_date || ''),
+                    q(r.payee_name || ''),
+                    q(r.currency || ''),
+                    q(r.amount || ''),
+                    q(r.cheque_number || '')
                 ];
                 csv += vals.join(',') + '\n';
             });
@@ -1160,13 +1307,14 @@
         $('btnXlsx').addEventListener('click', () => {
             if (lastResults.length === 0) return toast('No data to export', 'error');
 
-            const headers = ['Sample', 'File Name', 'Type', 'Cheque Bank', 'Cheque Date', 'Payee Name', 'Currency', 'Cheque Amount', 'Cheque Number'];
+            const headers = ['Sample', 'File Name', 'Type', 'Bank (EN)', 'Bank (CH)', 'Cheque Date', 'Payee Name', 'Currency', 'Cheque Amount', 'Cheque Number'];
 
             const rows = lastResults.map((r, i) => ([
                 i + 1,
                 r.fileName || '',
                 r.instrument_type || '',
-                r.issuing_bank || '',
+                r.bank_name_en || r.issuing_bank || '',
+                r.bank_name_ch || '',
                 r.cheque_date || '',
                 r.payee_name || '',
                 r.currency || '',
