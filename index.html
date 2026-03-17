@@ -605,6 +605,23 @@
             top: 0;
         }
 
+        /* Column widths — min-width only, text wraps */
+        th:nth-child(1) {
+            width: 30px;
+        }
+
+        th:nth-child(2) {
+            width: 52px;
+        }
+
+        th:nth-child(4) {
+            width: 65px;
+        }
+
+        th:nth-child(9) {
+            width: 60px;
+        }
+
         tbody td {
             padding: 0.65rem 0.85rem;
             border-bottom: 1px solid var(--border);
@@ -808,6 +825,702 @@
                 transform: translateX(20px);
             }
         }
+
+        /* ─── Editable Cells ─── */
+        .cell-input {
+            background: transparent;
+            border: 1px solid transparent;
+            color: inherit;
+            font: inherit;
+            width: 100%;
+            padding: 0.15rem 0.3rem;
+            outline: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .cell-input:hover {
+            border-color: var(--border);
+        }
+
+        .cell-input:focus {
+            border-color: var(--accent);
+            background: var(--bg-elevated);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .cell-input.modified {
+            border-color: var(--amber);
+            background: var(--amber-dim);
+        }
+
+        .cell-input.amount-field {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        .cell-input.date-field {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: var(--cyan);
+            font-size: 0.75rem;
+        }
+
+        .cell-input.cheque-num-field {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: var(--text-dim);
+            font-size: 0.73rem;
+        }
+
+        tbody tr {
+            cursor: pointer;
+        }
+
+        tbody tr.selected-row {
+            background: var(--accent-glow) !important;
+            border-left: 2px solid var(--accent);
+        }
+
+        /* ─── Confidence Badge ─── */
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-left: 0.3rem;
+            vertical-align: middle;
+        }
+
+        .conf-high {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .conf-medium {
+            background: var(--amber-dim);
+            color: var(--amber);
+        }
+
+        .conf-low {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        /* ─── Split View ─── */
+        .split-view {
+            position: fixed;
+            inset: 0;
+            z-index: 900;
+            background: var(--bg);
+            display: none;
+            flex-direction: column;
+            animation: splitOpen 0.3s ease;
+        }
+
+        .split-view.open {
+            display: flex;
+        }
+
+        @keyframes splitOpen {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+
+        .split-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .split-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .split-nav button {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .split-nav button:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .split-nav button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .split-record-info {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-weight: 600;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .split-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .split-body {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ─── Left Pane: Form ─── */
+        .split-left {
+            overflow-y: auto;
+            padding: 1.25rem;
+            border-right: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        .split-left::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .split-left::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .form-section-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .form-section-title:first-child {
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 0.85rem;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            margin-bottom: 0.3rem;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 0.7rem;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-input.readonly {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .form-input.modified {
+            border-color: var(--amber);
+        }
+
+        select.form-input {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b6b80'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.6rem center;
+            padding-right: 2rem;
+        }
+
+        .form-note {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            font-style: italic;
+        }
+
+        /* ─── Right Pane: Image Viewer ─── */
+        .split-right {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #08080d;
+        }
+
+        .viewer-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .viewer-toolbar button {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: all 0.15s;
+        }
+
+        .viewer-toolbar button:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .viewer-toolbar .zoom-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: 0.5rem;
+            min-width: 40px;
+        }
+
+        .viewer-canvas {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+        }
+
+        .viewer-canvas:active {
+            cursor: grabbing;
+        }
+
+        .viewer-transform {
+            position: absolute;
+            transform-origin: 0 0;
+            transition: none;
+        }
+
+        .viewer-transform img {
+            display: block;
+            max-width: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .bbox-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .bbox-overlay rect {
+            fill: rgba(99, 102, 241, 0.08);
+            stroke: rgba(99, 102, 241, 0.35);
+            stroke-width: 1.5;
+            transition: all 0.25s;
+        }
+
+        .bbox-overlay rect.bbox-active {
+            fill: rgba(34, 197, 94, 0.15);
+            stroke: var(--green);
+            stroke-width: 2.5;
+            filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.4));
+        }
+
+        .bbox-overlay rect.bbox-hover {
+            fill: rgba(6, 182, 212, 0.12);
+            stroke: var(--cyan);
+            stroke-width: 2;
+        }
+
+        /* ─── Responsive Split ─── */
+        @media (max-width: 900px) {
+            .split-body {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+
+            .split-left {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+
+        /* ═══════════════════════════════════════════ */
+        /* ─── STACKED CARDS REVIEW MODE ─── */
+        /* ═══════════════════════════════════════════ */
+
+        .view-toggle {
+            display: inline-flex;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .view-toggle-btn {
+            padding: 0.35rem 0.8rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .view-toggle-btn.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .view-toggle-btn:not(.active):hover {
+            color: var(--text-dim);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        /* ─── Cards Container ─── */
+        .review-cards {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .review-cards.visible {
+            display: flex;
+            animation: fadeUp 0.35s ease;
+        }
+
+        /* ─── Individual Card ─── */
+        .review-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .review-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .review-card.card-verified {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .review-card.card-flagged {
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 1rem;
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            min-width: 0;
+        }
+
+        .card-num {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .card-filename {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-header-right {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-shrink: 0;
+        }
+
+        .card-action-btn {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .card-action-btn:hover {
+            background: var(--bg-card);
+        }
+
+        .card-action-btn.btn-verify {
+            color: var(--text-dim);
+        }
+
+        .card-action-btn.btn-verify.active {
+            background: var(--green-dim);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: var(--green);
+        }
+
+        .card-action-btn.btn-flag {
+            color: var(--text-dim);
+        }
+
+        .card-action-btn.btn-flag.active {
+            background: var(--amber-dim);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: var(--amber);
+        }
+
+        .card-action-btn.btn-detail {
+            color: var(--text-muted);
+        }
+
+        .card-action-btn.btn-detail:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* ─── Card Body: 2-column ─── */
+        .card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 180px;
+        }
+
+        @media (max-width: 800px) {
+            .card-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ─── Card Fields (left column) ─── */
+        .card-fields {
+            padding: 0.75rem 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem 0.75rem;
+            align-content: start;
+        }
+
+        .card-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .card-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .card-field-label {
+            font-size: 0.62rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .card-field-input {
+            background: var(--bg-elevated);
+            border: 1px solid transparent;
+            border-radius: 5px;
+            padding: 0.3rem 0.5rem;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            outline: none;
+            transition: all 0.15s;
+            width: 100%;
+        }
+
+        .card-field-input:hover {
+            border-color: var(--border);
+        }
+
+        .card-field-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .card-field-input.modified {
+            border-color: var(--amber);
+            background: var(--amber-dim);
+        }
+
+        .card-field-input.mono {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-weight: 600;
+        }
+
+        .card-field-input.amount-color {
+            color: var(--green);
+        }
+
+        .card-field-input.date-color {
+            color: var(--cyan);
+        }
+
+        /* ─── Card Image (right column) ─── */
+        .card-image-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #08080d;
+            border-left: 1px solid var(--border);
+            overflow: hidden;
+            cursor: zoom-in;
+            min-height: 180px;
+        }
+
+        @media (max-width: 800px) {
+            .card-image-wrap {
+                border-left: none;
+                border-top: 1px solid var(--border);
+                min-height: 200px;
+            }
+        }
+
+        .card-image-wrap img {
+            max-width: 100%;
+            max-height: 220px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .card-image-wrap:hover img {
+            transform: scale(1.05);
+        }
+
+        .card-image-placeholder {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+
+        /* ─── Hover Zoom Lens ─── */
+        .zoom-lens {
+            position: fixed;
+            width: 380px;
+            height: 380px;
+            border: 2px solid var(--accent);
+            border-radius: var(--radius);
+            background-repeat: no-repeat;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+            pointer-events: none;
+            z-index: 2000;
+            display: none;
+            transition: opacity 0.15s;
+        }
+
+        .zoom-lens.active {
+            display: block;
+        }
+
+        /* ─── Card Confidence Inline ─── */
+        .card-confidence {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 0.1rem 0.35rem;
+            border-radius: 8px;
+            text-transform: uppercase;
+            margin-left: 0.3rem;
+            vertical-align: middle;
+        }
+
+        /* ─── Card Status Strip ─── */
+        .card-status-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: var(--bg-elevated);
+            border-top: 1px solid var(--border);
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+
+        .card-status-strip .correction-note {
+            color: var(--amber);
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -903,6 +1616,12 @@
                 <h2>Extraction Results</h2>
                 <div style="display:flex;gap:0.5rem;align-items:center">
                     <span class="results-count" id="resultsCount">0 records</span>
+                    <div class="view-toggle" id="viewToggle">
+                        <button class="view-toggle-btn active" data-view="cards" onclick="toggleView('cards')">🃏
+                            Cards</button>
+                        <button class="view-toggle-btn" data-view="table" onclick="toggleView('table')">📋
+                            Table</button>
+                    </div>
                     <button class="btn btn-xlsx" id="btnXlsx">📊 XLSX</button>
                     <button class="btn btn-export" id="btnExport">📥 CSV</button>
                 </div>
@@ -927,13 +1646,56 @@
                     <tbody id="resultsBody"></tbody>
                 </table>
             </div>
+            <!-- Cards View -->
+            <div class="review-cards" id="reviewCards"></div>
         </div>
     </div>
 
-    <!-- Image Modal -->
+    <!-- Image Modal (legacy) -->
     <div class="modal-overlay" id="modal">
         <img id="modalImg" src="" alt="Preview">
     </div>
+
+    <!-- Split View -->
+    <div class="split-view" id="splitView">
+        <div class="split-header">
+            <div class="split-nav">
+                <button id="btnPrev" title="Previous record">◀ Prev</button>
+                <span class="split-record-info" id="splitRecordInfo">1 / 1</span>
+                <button id="btnNext" title="Next record">Next ▶</button>
+            </div>
+            <div style="font-size:0.8rem;font-weight:600;color:var(--text)" id="splitFileName">—</div>
+            <div class="split-actions">
+                <button class="btn btn-primary" id="btnSaveRecord" style="padding:0.4rem 1rem;font-size:0.75rem">✓
+                    Save</button>
+                <button class="btn btn-ghost" id="btnCloseSplit"
+                    style="padding:0.4rem 0.7rem;font-size:0.85rem">✕</button>
+            </div>
+        </div>
+        <div class="split-body">
+            <div class="split-left" id="splitLeft">
+                <!-- Form fields rendered by JS -->
+            </div>
+            <div class="split-right">
+                <div class="viewer-toolbar">
+                    <button id="btnZoomIn" title="Zoom in">+</button>
+                    <button id="btnZoomOut" title="Zoom out">−</button>
+                    <button id="btnRotateCW" title="Rotate clockwise">↻</button>
+                    <button id="btnResetView" title="Reset view">⟲</button>
+                    <span class="zoom-label" id="zoomLabel">100%</span>
+                </div>
+                <div class="viewer-canvas" id="viewerCanvas">
+                    <div class="viewer-transform" id="viewerTransform">
+                        <img id="viewerImg" src="" alt="Cheque">
+                        <svg id="bboxOverlay" class="bbox-overlay"></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zoom lens for hover-zoom -->
+    <div class="zoom-lens" id="zoomLens"></div>
 
     <!-- Toast container -->
     <div class="toast-container" id="toastContainer"></div>
@@ -1190,14 +1952,17 @@
             btnScan.innerHTML = '<span>⚡</span> Start Scan';
         }
 
-        // ─── Results ───
+        // ─── Results (Editable Table + Cards) ───
+        let modifiedCells = {}; // track { `${row}-${field}`: true }
+        let currentViewMode = 'cards'; // 'cards' or 'table'
+        let cardStates = {}; // track { index: { verified: bool, flagged: bool } }
+
         function renderResults(results) {
             if (!Array.isArray(results) || results.length === 0) {
                 $('resultsCount').textContent = '0 records';
                 return;
             }
 
-            // Sort by fileName ascending
             results.sort((a, b) => {
                 const fa = (a.fileName || '').toLowerCase();
                 const fb = (b.fileName || '').toLowerCase();
@@ -1205,22 +1970,34 @@
             });
 
             lastResults = results;
+            modifiedCells = {};
             resultsSection.classList.add('visible');
             $('resultsCount').textContent = `${results.length} record(s)`;
 
             const tbody = $('resultsBody');
+            const editableFields = [
+                { key: 'bank_name_en', cls: '', fallback: 'issuing_bank' },
+                { key: 'bank_name_ch', cls: '' },
+                { key: 'cheque_date', cls: 'date-field' },
+                { key: 'payee_name', cls: '' },
+                { key: 'currency', cls: '' },
+                { key: 'amount', cls: 'amount-field' },
+                { key: 'cheque_number', cls: 'cheque-num-field' },
+            ];
+
             tbody.innerHTML = results.map((r, i) => {
                 const typeCls = getTypeClass(r.instrument_type);
                 const hasImage = r.image_data && r.image_data.startsWith('data:');
                 const preview = hasImage
-                    ? `<img class="preview-thumb" src="${r.image_data}" onclick="openModal(this.src)" alt="preview">`
+                    ? `<img class="preview-thumb" src="${r.image_data}" onclick="event.stopPropagation();openModal(this.src)" alt="preview">`
                     : '<span style="color:var(--text-muted);font-size:0.7rem">—</span>';
 
-                // Backward compat: support old issuing_bank field
                 const bankEn = r.bank_name_en || r.issuing_bank || '—';
                 const bankCh = r.bank_name_ch || '—';
+                const conf = r.amount_confidence || '';
+                const confBadge = conf ? `<span class="confidence-badge conf-${conf}">${conf === 'high' ? '✓' : conf === 'medium' ? '~' : '!'} ${conf}</span>` : '';
 
-                return `<tr>
+                return `<tr onclick="openSplitView(${i})" data-row="${i}">
           <td style="color:var(--text-muted)">${i + 1}</td>
           <td>${preview}</td>
           <td>${esc(r.fileName || '—')}</td>
@@ -1230,10 +2007,28 @@
           <td class="date">${esc(r.cheque_date || '—')}</td>
           <td>${esc(r.payee_name || '—')}</td>
           <td><span class="currency-tag">${esc(r.currency || '—')}</span></td>
-          <td class="amount">${formatAmount(r.amount, r.currency)}</td>
+          <td class="amount">${formatAmount(r.amount)}${confBadge}</td>
           <td class="cheque-num">${esc(r.cheque_number || '—')}</td>
         </tr>`;
             }).join('');
+
+            // Also render cards + apply current view mode
+            renderCardView(results);
+            toggleView(currentViewMode);
+        }
+
+        function onCellEdit(el) {
+            const row = parseInt(el.dataset.row);
+            const field = el.dataset.field;
+            lastResults[row][field] = el.value;
+            el.classList.add('modified');
+            modifiedCells[`${row}-${field}`] = true;
+
+            // Sync with split view if open
+            if (splitViewOpen && currentSplitIndex === row) {
+                const formInput = document.querySelector(`.split-left [data-field="${field}"]`);
+                if (formInput && formInput !== el) formInput.value = el.value;
+            }
         }
 
         function getTypeClass(type) {
@@ -1245,7 +2040,7 @@
             return 'type-unknown';
         }
 
-        function formatAmount(amt, currency) {
+        function formatAmount(amt) {
             if (!amt || amt === 'N/A') return '—';
             const num = parseFloat(amt.replace(/,/g, ''));
             if (isNaN(num)) return esc(amt);
@@ -1258,12 +2053,503 @@
             return d.innerHTML;
         }
 
-        // ─── Modal ───
+        function escAttr(str) {
+            return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ─── Modal (legacy) ───
         function openModal(src) {
             $('modalImg').src = src;
             modal.classList.add('open');
         }
         modal.addEventListener('click', () => modal.classList.remove('open'));
+
+        // ═══════════════════════════════════════════
+        // ─── STACKED CARDS VIEW ───
+        // ═══════════════════════════════════════════
+
+        function toggleView(mode) {
+            currentViewMode = mode;
+            const tableWrap = document.querySelector('.table-wrap');
+            const cardsWrap = $('reviewCards');
+            const btns = document.querySelectorAll('.view-toggle-btn');
+
+            btns.forEach(b => {
+                b.classList.toggle('active', b.dataset.view === mode);
+            });
+
+            if (mode === 'cards') {
+                tableWrap.style.display = 'none';
+                cardsWrap.classList.add('visible');
+            } else {
+                tableWrap.style.display = '';
+                cardsWrap.classList.remove('visible');
+            }
+        }
+
+        function renderCardView(results) {
+            const container = $('reviewCards');
+            if (!results || results.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            // Reset card states
+            cardStates = {};
+            results.forEach((_, i) => { cardStates[i] = { verified: false, flagged: false }; });
+
+            container.innerHTML = results.map((r, i) => {
+                const typeCls = getTypeClass(r.instrument_type);
+                const hasImage = r.image_data && r.image_data.startsWith('data:');
+                const conf = r.amount_confidence || '';
+                const confCls = conf ? `conf-${conf}` : '';
+                const confIcon = conf === 'high' ? '✓' : conf === 'medium' ? '~' : conf === 'low' ? '!' : '';
+                const confLabel = conf ? `<span class="card-confidence confidence-badge ${confCls}">${confIcon} ${conf}</span>` : '';
+
+                const corrNote = r.amount_correction_note
+                    ? `<div class="card-status-strip"><span class="correction-note">⚠ ${esc(r.amount_correction_note)}</span></div>`
+                    : '';
+
+                const imageHtml = hasImage
+                    ? `<img src="${r.image_data}" alt="Cheque" data-card-idx="${i}" onmouseenter="startZoom(event)" onmousemove="moveZoom(event)" onmouseleave="endZoom()">`
+                    : `<span class="card-image-placeholder">No image</span>`;
+
+                return `<div class="review-card" id="card-${i}" data-card="${i}">
+                    <div class="card-header">
+                        <div class="card-header-left">
+                            <span class="card-num">${i + 1}</span>
+                            <span class="card-filename">${esc(r.fileName || '—')}</span>
+                            <span class="type-badge ${typeCls}">${esc(r.instrument_type || '—')}</span>
+                        </div>
+                        <div class="card-header-right">
+                            <button class="card-action-btn btn-verify" id="verify-${i}" onclick="verifyCard(${i})" title="Mark as verified">✓ Verified</button>
+                            <button class="card-action-btn btn-flag" id="flag-${i}" onclick="flagCard(${i})" title="Flag for review">⚠ Flag</button>
+                            <button class="card-action-btn btn-detail" onclick="openSplitView(${i})" title="Open detailed view">🔍 Detail</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-fields">
+                            <div class="card-field">
+                                <span class="card-field-label">Bank (EN)</span>
+                                <input class="card-field-input" value="${escAttr(r.bank_name_en || r.issuing_bank || '')}" data-card-row="${i}" data-field="bank_name_en" oninput="onCardFieldEdit(this)">
+                            </div>
+                            <div class="card-field">
+                                <span class="card-field-label">Bank (CH)</span>
+                                <input class="card-field-input" value="${escAttr(r.bank_name_ch || '')}" data-card-row="${i}" data-field="bank_name_ch" oninput="onCardFieldEdit(this)">
+                            </div>
+                            <div class="card-field">
+                                <span class="card-field-label">Cheque Date</span>
+                                <input class="card-field-input mono date-color" value="${escAttr(r.cheque_date || '')}" data-card-row="${i}" data-field="cheque_date" oninput="onCardFieldEdit(this)" placeholder="YYYY-MM-DD">
+                            </div>
+                            <div class="card-field">
+                                <span class="card-field-label">Currency</span>
+                                <input class="card-field-input" value="${escAttr(r.currency || '')}" data-card-row="${i}" data-field="currency" oninput="onCardFieldEdit(this)">
+                            </div>
+                            <div class="card-field full-width">
+                                <span class="card-field-label">Payee Name</span>
+                                <input class="card-field-input" value="${escAttr(r.payee_name || '')}" data-card-row="${i}" data-field="payee_name" oninput="onCardFieldEdit(this)">
+                            </div>
+                            <div class="card-field">
+                                <span class="card-field-label">Amount ${confLabel}</span>
+                                <input class="card-field-input mono amount-color" value="${escAttr(r.amount || '')}" data-card-row="${i}" data-field="amount" oninput="onCardFieldEdit(this)">
+                            </div>
+                            <div class="card-field">
+                                <span class="card-field-label">Cheque No.</span>
+                                <input class="card-field-input mono" value="${escAttr(r.cheque_number || '')}" data-card-row="${i}" data-field="cheque_number" oninput="onCardFieldEdit(this)">
+                            </div>
+                        </div>
+                        <div class="card-image-wrap">
+                            ${imageHtml}
+                        </div>
+                    </div>
+                    ${corrNote}
+                </div>`;
+            }).join('');
+        }
+
+        function onCardFieldEdit(el) {
+            const row = parseInt(el.dataset.cardRow);
+            const field = el.dataset.field;
+            lastResults[row][field] = el.value;
+            el.classList.add('modified');
+            modifiedCells[`${row}-${field}`] = true;
+        }
+
+        function verifyCard(idx) {
+            const btn = $(`verify-${idx}`);
+            const card = $(`card-${idx}`);
+            const state = cardStates[idx];
+            state.verified = !state.verified;
+            if (state.verified) state.flagged = false;
+            btn.classList.toggle('active', state.verified);
+            $(`flag-${idx}`).classList.remove('active');
+            card.classList.toggle('card-verified', state.verified);
+            card.classList.remove('card-flagged');
+        }
+
+        function flagCard(idx) {
+            const btn = $(`flag-${idx}`);
+            const card = $(`card-${idx}`);
+            const state = cardStates[idx];
+            state.flagged = !state.flagged;
+            if (state.flagged) state.verified = false;
+            btn.classList.toggle('active', state.flagged);
+            $(`verify-${idx}`).classList.remove('active');
+            card.classList.toggle('card-flagged', state.flagged);
+            card.classList.remove('card-verified');
+        }
+
+        // ─── Hover Zoom Lens ───
+        const zoomLens = $('zoomLens');
+        const ZOOM_FACTOR = 2.5;
+
+        function startZoom(e) {
+            const img = e.target;
+            if (!img.src || !img.naturalWidth) return;
+            zoomLens.style.backgroundImage = `url(${img.src})`;
+            zoomLens.style.backgroundSize = `${img.naturalWidth * ZOOM_FACTOR}px ${img.naturalHeight * ZOOM_FACTOR}px`;
+            zoomLens.classList.add('active');
+            moveZoom(e);
+        }
+
+        function moveZoom(e) {
+            const img = e.target;
+            if (!img.naturalWidth || !zoomLens.classList.contains('active')) return;
+
+            const rect = img.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = (e.clientY - rect.top) / rect.height;
+
+            // Position lens to the right of cursor, or left if near right edge
+            let lensX = e.clientX + 20;
+            let lensY = e.clientY - 190;
+            if (lensX + 390 > window.innerWidth) lensX = e.clientX - 400;
+            if (lensY < 10) lensY = 10;
+            if (lensY + 390 > window.innerHeight) lensY = window.innerHeight - 390;
+
+            zoomLens.style.left = lensX + 'px';
+            zoomLens.style.top = lensY + 'px';
+
+            const bgX = x * img.naturalWidth * ZOOM_FACTOR - 190;
+            const bgY = y * img.naturalHeight * ZOOM_FACTOR - 190;
+            zoomLens.style.backgroundPosition = `-${bgX}px -${bgY}px`;
+        }
+
+        function endZoom() {
+            zoomLens.classList.remove('active');
+        }
+
+        // ─── Card Keyboard Nav ───
+        document.addEventListener('keydown', e => {
+            if (splitViewOpen) return; // split view has its own keyboard handlers
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+            if (currentViewMode !== 'cards' || lastResults.length === 0) return;
+
+            const cards = document.querySelectorAll('.review-card');
+            if (cards.length === 0) return;
+
+            // Find currently visible card
+            let visibleIdx = 0;
+            cards.forEach((card, i) => {
+                const rect = card.getBoundingClientRect();
+                if (rect.top < window.innerHeight / 2 && rect.bottom > 0) visibleIdx = i;
+            });
+
+            if (e.key === 'j' || e.key === 'J') {
+                // Next card
+                const next = Math.min(visibleIdx + 1, cards.length - 1);
+                cards[next].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                e.preventDefault();
+            } else if (e.key === 'k' || e.key === 'K') {
+                // Previous card
+                const prev = Math.max(visibleIdx - 1, 0);
+                cards[prev].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                e.preventDefault();
+            } else if (e.key === 'v' || e.key === 'V') {
+                verifyCard(visibleIdx);
+                e.preventDefault();
+            } else if (e.key === 'f' || e.key === 'F') {
+                flagCard(visibleIdx);
+                e.preventDefault();
+            }
+        });
+
+        // ═══════════════════════════════════════════
+        // ─── SPLIT VIEW ───
+        // ═══════════════════════════════════════════
+        let splitViewOpen = false;
+        let currentSplitIndex = -1;
+        let viewerState = { scale: 1, rotation: 0, panX: 0, panY: 0, dragging: false, lastX: 0, lastY: 0 };
+
+        const FORM_FIELDS = [
+            { key: 'instrument_type', label: 'Instrument Type', type: 'select', options: ['Cheque', "Cashier's Order", 'Bank Draft', 'N/A'] },
+            { key: 'bank_name_en', label: 'Bank (English)', type: 'text' },
+            { key: 'bank_name_ch', label: 'Bank (Chinese)', type: 'text' },
+            { key: 'cheque_date', label: 'Cheque Date', type: 'text', placeholder: 'YYYY-MM-DD' },
+            { key: 'payee_name', label: 'Payee Name', type: 'text' },
+            { key: 'currency', label: 'Currency', type: 'select', options: ['HKD', 'USD', 'CNY', 'SGD', 'GBP', 'EUR'] },
+            { key: 'amount', label: 'Amount', type: 'text', mono: true },
+            { key: 'amount_in_words', label: 'Amount in Words', type: 'text', readonly: true },
+            { key: 'cheque_number', label: 'Cheque Number', type: 'text', mono: true },
+        ];
+
+        function openSplitView(index) {
+            if (index < 0 || index >= lastResults.length) return;
+            currentSplitIndex = index;
+            splitViewOpen = true;
+            $('splitView').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            renderSplitView();
+        }
+
+        function closeSplitView() {
+            splitViewOpen = false;
+            currentSplitIndex = -1;
+            $('splitView').classList.remove('open');
+            document.body.style.overflow = '';
+            // Re-render table to sync any edits
+            renderResults(lastResults);
+        }
+
+        function renderSplitView() {
+            const r = lastResults[currentSplitIndex];
+            if (!r) return;
+
+            // Header info
+            $('splitRecordInfo').textContent = `${currentSplitIndex + 1} / ${lastResults.length}`;
+            $('splitFileName').textContent = r.fileName || '—';
+            $('btnPrev').disabled = currentSplitIndex === 0;
+            $('btnNext').disabled = currentSplitIndex === lastResults.length - 1;
+
+            // Left pane: form
+            renderSplitForm(r);
+
+            // Right pane: image
+            resetViewer();
+            const img = $('viewerImg');
+            if (r.image_data && r.image_data.startsWith('data:')) {
+                img.src = r.image_data;
+                img.onload = () => {
+                    fitImageToCanvas();
+                    renderBoundingBoxes(r);
+                };
+            } else {
+                img.src = '';
+                $('bboxOverlay').innerHTML = '';
+            }
+        }
+
+        function renderSplitForm(r) {
+            const left = $('splitLeft');
+            const conf = r.amount_confidence || '';
+
+            let html = '<div class="form-section-title">📋 Cheque Data</div>';
+
+            FORM_FIELDS.forEach(f => {
+                const val = r[f.key] || '';
+                const isModified = modifiedCells[`${currentSplitIndex}-${f.key}`];
+
+                if (f.type === 'select') {
+                    const opts = f.options.map(o =>
+                        `<option value="${escAttr(o)}" ${o === val ? 'selected' : ''}>${esc(o)}</option>`
+                    ).join('');
+                    html += `<div class="form-group">
+                        <label class="form-label">${f.label}</label>
+                        <select class="form-input ${isModified ? 'modified' : ''}" data-field="${f.key}" onchange="onFormEdit(this)">${opts}</select>
+                    </div>`;
+                } else {
+                    const extra = f.readonly ? 'readonly' : '';
+                    const cls = [
+                        'form-input',
+                        f.readonly ? 'readonly' : '',
+                        isModified ? 'modified' : '',
+                    ].filter(Boolean).join(' ');
+                    const style = f.mono ? 'font-family:SF Mono,Fira Code,monospace;' : '';
+
+                    let badge = '';
+                    if (f.key === 'amount' && conf) {
+                        badge = `<span class="confidence-badge conf-${conf}" style="margin-top:0.25rem;display:inline-flex">${conf === 'high' ? '✓ High' : conf === 'medium' ? '~ Medium' : '! Low'} Confidence</span>`;
+                        if (r.amount_correction_note) {
+                            badge += `<div class="form-note">⚠ ${esc(r.amount_correction_note)}</div>`;
+                        }
+                    }
+
+                    html += `<div class="form-group">
+                        <label class="form-label">${f.label}</label>
+                        <input type="text" class="${cls}" value="${escAttr(val)}" data-field="${f.key}" ${extra} ${f.placeholder ? `placeholder="${f.placeholder}"` : ''} style="${style}"
+                            oninput="onFormEdit(this)" onfocus="highlightBBox('${f.key}')">
+                        ${badge}
+                    </div>`;
+                }
+            });
+
+            left.innerHTML = html;
+        }
+
+        function onFormEdit(el) {
+            if (el.readOnly) return;
+            const field = el.dataset.field;
+            const val = el.value;
+            lastResults[currentSplitIndex][field] = val;
+            el.classList.add('modified');
+            modifiedCells[`${currentSplitIndex}-${field}`] = true;
+
+            // Sync with table cell
+            const tableInput = document.querySelector(`#resultsBody [data-row="${currentSplitIndex}"][data-field="${field}"]`);
+            if (tableInput) {
+                tableInput.value = val;
+                tableInput.classList.add('modified');
+            }
+        }
+
+        // ─── Split View Navigation ───
+        $('btnPrev').addEventListener('click', () => {
+            if (currentSplitIndex > 0) { currentSplitIndex--; renderSplitView(); }
+        });
+        $('btnNext').addEventListener('click', () => {
+            if (currentSplitIndex < lastResults.length - 1) { currentSplitIndex++; renderSplitView(); }
+        });
+        $('btnSaveRecord').addEventListener('click', () => {
+            toast('Changes saved to current session', 'success');
+        });
+        $('btnCloseSplit').addEventListener('click', closeSplitView);
+
+        // Keyboard nav
+        document.addEventListener('keydown', e => {
+            if (!splitViewOpen) return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            if (e.key === 'Escape') closeSplitView();
+            if (e.key === 'ArrowLeft' && currentSplitIndex > 0) { currentSplitIndex--; renderSplitView(); }
+            if (e.key === 'ArrowRight' && currentSplitIndex < lastResults.length - 1) { currentSplitIndex++; renderSplitView(); }
+        });
+
+        // ═══════════════════════════════════════════
+        // ─── IMAGE VIEWER (Zoom / Pan / Rotate) ───
+        // ═══════════════════════════════════════════
+        function resetViewer() {
+            viewerState = { scale: 1, rotation: 0, panX: 0, panY: 0, dragging: false, lastX: 0, lastY: 0 };
+            applyViewerTransform();
+            $('zoomLabel').textContent = '100%';
+        }
+
+        function applyViewerTransform() {
+            const { scale, rotation, panX, panY } = viewerState;
+            $('viewerTransform').style.transform = `translate(${panX}px, ${panY}px) scale(${scale}) rotate(${rotation}deg)`;
+        }
+
+        function fitImageToCanvas() {
+            const canvas = $('viewerCanvas');
+            const img = $('viewerImg');
+            if (!img.naturalWidth || !canvas.clientWidth) return;
+
+            const cw = canvas.clientWidth;
+            const ch = canvas.clientHeight;
+            const iw = img.naturalWidth;
+            const ih = img.naturalHeight;
+            const scale = Math.min(cw / iw, ch / ih) * 0.9;
+
+            viewerState.scale = scale;
+            viewerState.panX = (cw - iw * scale) / 2;
+            viewerState.panY = (ch - ih * scale) / 2;
+            viewerState.rotation = 0;
+            applyViewerTransform();
+            $('zoomLabel').textContent = `${Math.round(scale * 100)}%`;
+        }
+
+        // Zoom
+        $('btnZoomIn').addEventListener('click', () => {
+            viewerState.scale = Math.min(viewerState.scale * 1.25, 5);
+            applyViewerTransform();
+            $('zoomLabel').textContent = `${Math.round(viewerState.scale * 100)}%`;
+        });
+        $('btnZoomOut').addEventListener('click', () => {
+            viewerState.scale = Math.max(viewerState.scale * 0.8, 0.1);
+            applyViewerTransform();
+            $('zoomLabel').textContent = `${Math.round(viewerState.scale * 100)}%`;
+        });
+        $('btnRotateCW').addEventListener('click', () => {
+            viewerState.rotation = (viewerState.rotation + 90) % 360;
+            applyViewerTransform();
+        });
+        $('btnResetView').addEventListener('click', fitImageToCanvas);
+
+        // Mouse wheel zoom
+        $('viewerCanvas').addEventListener('wheel', e => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            viewerState.scale = Math.min(Math.max(viewerState.scale * delta, 0.1), 5);
+            applyViewerTransform();
+            $('zoomLabel').textContent = `${Math.round(viewerState.scale * 100)}%`;
+        }, { passive: false });
+
+        // Pan
+        $('viewerCanvas').addEventListener('mousedown', e => {
+            if (e.button !== 0) return;
+            viewerState.dragging = true;
+            viewerState.lastX = e.clientX;
+            viewerState.lastY = e.clientY;
+        });
+        document.addEventListener('mousemove', e => {
+            if (!viewerState.dragging) return;
+            viewerState.panX += e.clientX - viewerState.lastX;
+            viewerState.panY += e.clientY - viewerState.lastY;
+            viewerState.lastX = e.clientX;
+            viewerState.lastY = e.clientY;
+            applyViewerTransform();
+        });
+        document.addEventListener('mouseup', () => { viewerState.dragging = false; });
+
+        // ═══════════════════════════════════════════
+        // ─── BOUNDING BOX OVERLAY ───
+        // ═══════════════════════════════════════════
+        function renderBoundingBoxes(record) {
+            const svg = $('bboxOverlay');
+            const img = $('viewerImg');
+            if (!img.naturalWidth) { svg.innerHTML = ''; return; }
+
+            svg.setAttribute('width', img.naturalWidth);
+            svg.setAttribute('height', img.naturalHeight);
+            svg.style.width = img.naturalWidth + 'px';
+            svg.style.height = img.naturalHeight + 'px';
+
+            const ocrItems = record.ocrItems || [];
+            if (ocrItems.length === 0) { svg.innerHTML = ''; return; }
+
+            let rects = '';
+            ocrItems.forEach((item, idx) => {
+                if (!item.polygon || item.polygon.length < 4) return;
+                const xs = item.polygon.map(p => p[0]);
+                const ys = item.polygon.map(p => p[1]);
+                const x = Math.min(...xs);
+                const y = Math.min(...ys);
+                const w = Math.max(...xs) - x;
+                const h = Math.max(...ys) - y;
+                rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" data-idx="${idx}" data-text="${escAttr(item.text || '')}" rx="2"/>`;
+            });
+            svg.innerHTML = rects;
+        }
+
+        function highlightBBox(fieldKey) {
+            const svg = $('bboxOverlay');
+            const record = lastResults[currentSplitIndex];
+            if (!record || !record.field_sources || !record.ocrItems) return;
+
+            // Clear previous highlights
+            svg.querySelectorAll('rect').forEach(r => r.classList.remove('bbox-active'));
+
+            const sourceText = record.field_sources[fieldKey];
+            if (!sourceText) return;
+
+            // Find matching OCR items
+            const normalizedSource = sourceText.toLowerCase().replace(/\s+/g, '');
+            record.ocrItems.forEach((item, idx) => {
+                const normalizedItem = (item.text || '').toLowerCase().replace(/\s+/g, '');
+                if (normalizedItem && (normalizedSource.includes(normalizedItem) || normalizedItem.includes(normalizedSource))) {
+                    const rect = svg.querySelector(`rect[data-idx="${idx}"]`);
+                    if (rect) rect.classList.add('bbox-active');
+                }
+            });
+        }
 
         // ─── Export CSV ───
         $('btnExport').addEventListener('click', () => {
@@ -1303,7 +2589,7 @@
             return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
         }
 
-        // ─── Export XLSX (matching sample format) ───
+        // ─── Export XLSX ───
         $('btnXlsx').addEventListener('click', () => {
             if (lastResults.length === 0) return toast('No data to export', 'error');
 
@@ -1325,7 +2611,6 @@
             const wsData = [headers, ...rows];
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-            // ── Column widths (auto-fit based on content) ──
             const colWidths = headers.map((h, ci) => {
                 let max = h.length;
                 rows.forEach(row => {
@@ -1336,7 +2621,6 @@
             });
             ws['!cols'] = colWidths;
 
-            // ── Blue header styling (#4472C4 background, white bold text) ──
             const headerStyle = {
                 font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11, name: 'Calibri' },
                 fill: { fgColor: { rgb: '4472C4' } },
